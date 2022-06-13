@@ -3,6 +3,8 @@
 //const { functionsIn } = require("cypress/types/lodash")
 
 describe('Central de Atendimento ao Cliente TAT', function() {
+    const THREE_SECONDS_IN_MS = 3000
+
     beforeEach(function(){
         cy.visit ('./src/index.html')
     })
@@ -12,12 +14,24 @@ describe('Central de Atendimento ao Cliente TAT', function() {
 
     it('preenche os campos obrigatórios e envia o formulário', function(){
         const TextoLongo = 'É Halloween e chove muito em Gotham: O Batman de Robert Pattinson tem estreia memorável em filme noir que dá pontapé ao novo Bat-Verso do cinema e da TV; estreia em 3 de março no Brasil'
+
+        cy.clock()
+
         cy.get('#firstName').should('be.visible').type('Beatriz').should('have.value', 'Beatriz')
         cy.get('#lastName').should('be.visible').type('Gomes Costa').should('have.value', 'Gomes Costa')
         cy.get('#email').should('be.visible').type('beatrizgcx@gmail.com').should('have.value', 'beatrizgcx@gmail.com')
         cy.get('#open-text-area').should('be.visible').type(TextoLongo, {delay: 0}).should('have.value', TextoLongo)
         cy.contains('button', 'Enviar').click()
+
+        
+        
         cy.get('.success').should('be.visible')
+
+        cy.tick(THREE_SECONDS_IN_MS)
+
+        cy.get('.success').should('not.be.visible')
+
+
     })
 
     //Exercício extra 1: Utilização do delay
@@ -25,6 +39,8 @@ describe('Central de Atendimento ao Cliente TAT', function() {
     //Exercício extra 2
 
     it('exibe mensagem de erro ao submeter o formulário com um email com formatação inválida', function(){
+
+        cy.clock()
         cy.get('#firstName').should('be.visible').type('Beatriz').should('have.value', 'Beatriz')
         cy.get('#lastName').should('be.visible').type('Gomes Costa').should('have.value', 'Gomes Costa')
         cy.get('#email').should('be.visible').type('beatrizgcx!gmail.com')
@@ -32,6 +48,11 @@ describe('Central de Atendimento ao Cliente TAT', function() {
         cy.contains('button', 'Enviar').click()
 
         cy.get('.error').should('be.visible')
+
+        cy.tick(THREE_SECONDS_IN_MS)
+
+        cy.get('.error').should('not.be.visible')
+
     })
 
     //Exercício extra 3
@@ -48,6 +69,9 @@ describe('Central de Atendimento ao Cliente TAT', function() {
     //Exercício extra 4
 
     it('exibe mensagem de erro quando o telefone se torna obrigatório mas não é preenchido antes do envio do formulário', function(){
+
+        cy.clock()
+
         cy.get('#firstName').should('be.visible').type('Beatriz').should('have.value', 'Beatriz')
         cy.get('#lastName').should('be.visible').type('Gomes Costa').should('have.value', 'Gomes Costa')
         cy.get('#email').should('be.visible').type('beatrizgcx@gmail.com')
@@ -56,6 +80,10 @@ describe('Central de Atendimento ao Cliente TAT', function() {
         cy.contains('button', 'Enviar').click()
 
         cy.get('.error').should('be.visible')
+
+        cy.tick(THREE_SECONDS_IN_MS)
+
+        cy.get('.error').should('not.be.visible')
 
     })
 
@@ -98,16 +126,30 @@ describe('Central de Atendimento ao Cliente TAT', function() {
     //Exercício extra 6
 
     it('exibe mensagem de erro ao submeter o formulário sem preencher os campos obrigatórios', function(){
+
+        cy.clock()
         cy.contains('button', 'Enviar').click()
         cy.get('.error').should('be.visible')
+
+        cy.tick(THREE_SECONDS_IN_MS)
+
+        cy.get('.error').should('not.be.visible')
+
+        
     })
 
     //Exercício extra 7
 
     it('envia o formuário com sucesso usando um comando customizado', function(){
+        cy.clock()
         cy.fillMandatoryFieldsAndSubmit()
 
         cy.get('.success').should('be.visible')
+
+        cy.tick(THREE_SECONDS_IN_MS)
+
+        cy.get('.error').should('not.be.visible')
+
     })
 
     //Exercício extra 8
@@ -232,7 +274,61 @@ describe('Central de Atendimento ao Cliente TAT', function() {
 
     //Exercício extra 2 : criando o arquivo para acessar diretamente a página de política de privacidade
 
-    
+    //Aula 12
+
+    //Exercício extra 2
+
+    it('exibe e esconde as mensagens de sucesso e erro usando o .invoke', () => {
+        cy.get('.success')
+          .should('not.be.visible')
+          .invoke('show')
+          .should('be.visible')
+          .and('contain', 'Mensagem enviada com sucesso.')
+          .invoke('hide')
+          .should('not.be.visible')
+        cy.get('.error')
+          .should('not.be.visible')
+          .invoke('show')
+          .should('be.visible')
+          .and('contain', 'Valide os campos obrigatórios!')
+          .invoke('hide')
+          .should('not.be.visible')
+      })
+
+      it('preenche a area de texto usando o comando invoke', function(){
+        const longText = Cypress._.repeat('0123456789', 20)
+
+        cy.get('textarea')
+            .invoke('val', longText)
+            .should('have.value', longText)
+      })
+
+
+      //Exercício extra 4
+
+     it('faz uma requisição HTTP', function(){
+         cy.request('https://cac-tat.s3.eu-central-1.amazonaws.com/index.html')
+            .should(function(response){
+                const { status, statusText, body} = response
+                expect(status).to.equal(200)
+                expect(statusText).to.equal('OK')
+                expect(body).to.include('CAC TAT')
+            })
+
+     })
+
+     //Aula 13 - Desafio
+     
+     it('Encontrar o gato', function(){
+         cy.get('#cat')
+            .invoke('show')
+            .should('be.visible')
+         cy.get('#title')
+            .invoke('text', 'CAT TAT') 
+         cy.get('#subtitle')    
+            .invoke('text', 'Eu 💖 gatitos') 
+     })
+     
 
         
 })
